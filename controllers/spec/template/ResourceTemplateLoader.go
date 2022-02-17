@@ -22,7 +22,7 @@ package template
 
 import (
 	apps "k8s.io/api/apps/v1"
-	"k8s.io/api/batch/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -35,9 +35,7 @@ type ResourceTemplateLoader struct {
 }
 
 func (r *ResourceTemplateLoader) LoadBaseConfigMap() (configMap core.ConfigMap, err error) {
-
 	obj, err := r.decodeYaml(yaml.BaseConfigMapTemplate)
-
 	if err != nil {
 		r.log.Error(err, "Unable to load Kubegres CustomConfig. Given error:")
 		return core.ConfigMap{}, err
@@ -63,21 +61,18 @@ func (r *ResourceTemplateLoader) LoadReplicaStatefulSet() (statefulSetTemplate a
 	return r.loadStatefulSet(yaml.ReplicaStatefulSetTemplate)
 }
 
-func (r *ResourceTemplateLoader) LoadBackUpCronJob() (cronJob v1beta1.CronJob, err error) {
+func (r *ResourceTemplateLoader) LoadBackUpCronJob() (cronJob batchv1.CronJob, err error) {
 	obj, err := r.decodeYaml(yaml.BackUpCronJobTemplate)
-
 	if err != nil {
 		r.log.Error(err, "Unable to load Kubegres BackUp CronJob. Given error:")
-		return v1beta1.CronJob{}, err
+		return batchv1.CronJob{}, err
 	}
 
-	return *obj.(*v1beta1.CronJob), nil
+	return *obj.(*batchv1.CronJob), nil
 }
 
 func (r *ResourceTemplateLoader) loadService(yamlContents string) (serviceTemplate core.Service, err error) {
-
 	obj, err := r.decodeYaml(yamlContents)
-
 	if err != nil {
 		r.log.Error(err, "Unable to decode Kubegres Service. Given error: ")
 		return core.Service{}, err
@@ -87,9 +82,7 @@ func (r *ResourceTemplateLoader) loadService(yamlContents string) (serviceTempla
 }
 
 func (r *ResourceTemplateLoader) loadStatefulSet(yamlContents string) (statefulSetTemplate apps.StatefulSet, err error) {
-
 	obj, err := r.decodeYaml(yamlContents)
-
 	if err != nil {
 		r.log.Error(err, "Unable to decode Kubegres StatefulSet. Given error: ")
 		return apps.StatefulSet{}, err
@@ -99,11 +92,9 @@ func (r *ResourceTemplateLoader) loadStatefulSet(yamlContents string) (statefulS
 }
 
 func (r *ResourceTemplateLoader) decodeYaml(yamlContents string) (runtime.Object, error) {
-
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 
 	obj, _, err := decode([]byte(yamlContents), nil, nil)
-
 	if err != nil {
 		r.log.Error(err, "Error in decode: ", "obj", obj)
 	}

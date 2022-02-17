@@ -22,13 +22,14 @@ package util
 
 import (
 	"context"
+	"log"
+
 	v1 "k8s.io/api/apps/v1"
-	"k8s.io/api/batch/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"log"
 	postgresv1 "reactive-tech.io/kubegres/api/v1"
 	"reactive-tech.io/kubegres/controllers/ctx"
 	"reactive-tech.io/kubegres/test/resourceConfigs"
@@ -58,7 +59,7 @@ type TestKubegresResource struct {
 
 type TestKubegresBackUpCronJob struct {
 	Name string
-	Spec v1beta1.CronJobSpec
+	Spec batchv1.CronJobSpec
 }
 
 type TestKubegresPod struct {
@@ -120,7 +121,6 @@ func (r *TestResourceRetriever) GetKubegresPvc() (*core.PersistentVolumeClaimLis
 }
 
 func (r *TestResourceRetriever) GetKubegresPvcByKubegresName(kubegresName string) (*core.PersistentVolumeClaimList, error) {
-
 	list := &core.PersistentVolumeClaimList{}
 	opts := []client.ListOption{
 		client.InNamespace(r.namespace),
@@ -148,17 +148,15 @@ func (r *TestResourceRetriever) GetKubegresResources() (TestKubegresResources, e
 }
 
 func (r *TestResourceRetriever) GetKubegresResourcesByName(kubegresName string) (TestKubegresResources, error) {
-
 	testKubegresResources := TestKubegresResources{}
 	statefulSetsList := &v1.StatefulSetList{}
 	err := r.getResourcesList(kubegresName, statefulSetsList)
-
 	if err != nil {
 		return r.logAndReturnError("StatefulSetList", "-", err)
 	}
 
 	cronJobName := ctx.CronJobNamePrefix + kubegresName
-	cronJob := &v1beta1.CronJob{}
+	cronJob := &batchv1.CronJob{}
 	err = r.getResource(cronJobName, cronJob)
 	if err == nil {
 		testKubegresResources.BackUpCronJob = TestKubegresBackUpCronJob{
@@ -242,7 +240,6 @@ func (r *TestResourceRetriever) getResourcesList(kubegresName string, resourceTy
 }
 
 func (r *TestResourceRetriever) isPodReady(pod *core.Pod) bool {
-
 	if len(pod.Status.ContainerStatuses) == 0 {
 		return false
 	}

@@ -24,7 +24,7 @@ import (
 	"strconv"
 
 	apps "k8s.io/api/apps/v1"
-	"k8s.io/api/batch/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,20 +54,18 @@ func CreateResourcesCreatorFromTemplate(kubegresContext ctx.KubegresContext,
 }
 
 func (r *ResourcesCreatorFromTemplate) CreateBaseConfigMap() (core.ConfigMap, error) {
-
 	baseConfigMap, err := r.templateFromFiles.LoadBaseConfigMap()
 	if err != nil {
 		return core.ConfigMap{}, err
 	}
 
 	baseConfigMap.Namespace = r.kubegresContext.Kubegres.Namespace
-	//baseConfigMap.OwnerReferences = r.getOwnerReference()
+	// baseConfigMap.OwnerReferences = r.getOwnerReference()
 
 	return baseConfigMap, nil
 }
 
 func (r *ResourcesCreatorFromTemplate) CreatePrimaryService() (core.Service, error) {
-
 	primaryService, err := r.templateFromFiles.LoadPrimaryService()
 	if err != nil {
 		return core.Service{}, err
@@ -81,7 +79,6 @@ func (r *ResourcesCreatorFromTemplate) CreatePrimaryService() (core.Service, err
 }
 
 func (r *ResourcesCreatorFromTemplate) CreateReplicaService() (core.Service, error) {
-
 	replicaService, err := r.templateFromFiles.LoadReplicaService()
 	if err != nil {
 		return core.Service{}, err
@@ -95,7 +92,6 @@ func (r *ResourcesCreatorFromTemplate) CreateReplicaService() (core.Service, err
 }
 
 func (r *ResourcesCreatorFromTemplate) CreatePrimaryStatefulSet(statefulSetInstanceIndex int32) (apps.StatefulSet, error) {
-
 	statefulSetTemplate, err := r.templateFromFiles.LoadPrimaryStatefulSet()
 	if err != nil {
 		return apps.StatefulSet{}, err
@@ -108,7 +104,6 @@ func (r *ResourcesCreatorFromTemplate) CreatePrimaryStatefulSet(statefulSetInsta
 }
 
 func (r *ResourcesCreatorFromTemplate) CreateReplicaStatefulSet(statefulSetInstanceIndex int32) (apps.StatefulSet, error) {
-
 	statefulSetTemplate, err := r.templateFromFiles.LoadReplicaStatefulSet()
 	if err != nil {
 		return apps.StatefulSet{}, err
@@ -131,11 +126,10 @@ func (r *ResourcesCreatorFromTemplate) CreateReplicaStatefulSet(statefulSetInsta
 	return statefulSetTemplate, nil
 }
 
-func (r *ResourcesCreatorFromTemplate) CreateBackUpCronJob(configMapNameForBackUp string) (v1beta1.CronJob, error) {
-
+func (r *ResourcesCreatorFromTemplate) CreateBackUpCronJob(configMapNameForBackUp string) (batchv1.CronJob, error) {
 	backUpCronJob, err := r.templateFromFiles.LoadBackUpCronJob()
 	if err != nil {
-		return v1beta1.CronJob{}, err
+		return batchv1.CronJob{}, err
 	}
 
 	postgres := r.kubegresContext.Kubegres
@@ -173,7 +167,6 @@ func (r *ResourcesCreatorFromTemplate) CreateBackUpCronJob(configMapNameForBackU
 }
 
 func (r *ResourcesCreatorFromTemplate) initService(service *core.Service) {
-
 	resourceName := r.kubegresContext.Kubegres.Name
 	service.Namespace = r.kubegresContext.Kubegres.Namespace
 	service.OwnerReferences = r.getOwnerReference()
@@ -235,7 +228,6 @@ func (r *ResourcesCreatorFromTemplate) initStatefulSet(
 	}
 
 	if postgresSpec.Volume.VolumeClaimTemplates != nil {
-
 		for _, volumeClaimTemplate := range postgresSpec.Volume.VolumeClaimTemplates {
 			persistentVolumeClaim := core.PersistentVolumeClaim{}
 			persistentVolumeClaim.Name = volumeClaimTemplate.Name
@@ -269,8 +261,7 @@ func (r *ResourcesCreatorFromTemplate) initStatefulSet(
 // Extract annotations set in Kubegres YAML by
 // excluding the internal annotation "kubectl.kubernetes.io/last-applied-configuration"
 func (r *ResourcesCreatorFromTemplate) getCustomAnnotations() map[string]string {
-
-	var customSpecAnnotations = make(map[string]string)
+	customSpecAnnotations := make(map[string]string)
 
 	for key, value := range r.kubegresContext.Kubegres.ObjectMeta.Annotations {
 		if key == KubegresInternalAnnotationKey {

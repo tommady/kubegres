@@ -21,8 +21,8 @@ limitations under the License.
 package states
 
 import (
-	"k8s.io/api/batch/v1beta1"
-	"k8s.io/api/core/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"reactive-tech.io/kubegres/controllers/ctx"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,7 +33,7 @@ type BackUpStates struct {
 	IsPvcDeployed           bool
 	ConfigMap               string
 	CronJobLastScheduleTime string
-	DeployedCronJob         *v1beta1.CronJob
+	DeployedCronJob         *batchv1.CronJob
 
 	kubegresContext ctx.KubegresContext
 }
@@ -45,7 +45,6 @@ func loadBackUpStates(kubegresContext ctx.KubegresContext) (BackUpStates, error)
 }
 
 func (r *BackUpStates) loadStates() (err error) {
-
 	r.DeployedCronJob, err = r.getDeployedCronJob()
 	if err != nil {
 		return err
@@ -75,15 +74,13 @@ func (r *BackUpStates) loadStates() (err error) {
 	return nil
 }
 
-func (r *BackUpStates) getDeployedCronJob() (*v1beta1.CronJob, error) {
-
+func (r *BackUpStates) getDeployedCronJob() (*batchv1.CronJob, error) {
 	namespace := r.kubegresContext.Kubegres.Namespace
 	resourceName := ctx.CronJobNamePrefix + r.kubegresContext.Kubegres.Name
 	resourceKey := client.ObjectKey{Namespace: namespace, Name: resourceName}
-	cronJob := &v1beta1.CronJob{}
+	cronJob := &batchv1.CronJob{}
 
 	err := r.kubegresContext.Client.Get(r.kubegresContext.Ctx, resourceKey, cronJob)
-
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			err = nil
@@ -96,14 +93,12 @@ func (r *BackUpStates) getDeployedCronJob() (*v1beta1.CronJob, error) {
 }
 
 func (r *BackUpStates) getDeployedPvc() (*v1.PersistentVolumeClaim, error) {
-
 	namespace := r.kubegresContext.Kubegres.Namespace
 	resourceName := r.kubegresContext.Kubegres.Spec.Backup.PvcName
 	resourceKey := client.ObjectKey{Namespace: namespace, Name: resourceName}
 	pvc := &v1.PersistentVolumeClaim{}
 
 	err := r.kubegresContext.Client.Get(r.kubegresContext.Ctx, resourceKey, pvc)
-
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			err = nil

@@ -21,7 +21,7 @@ limitations under the License.
 package resources_count_spec
 
 import (
-	"k8s.io/api/batch/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	"reactive-tech.io/kubegres/controllers/ctx"
 	"reactive-tech.io/kubegres/controllers/spec/template"
 	"reactive-tech.io/kubegres/controllers/states"
@@ -45,7 +45,6 @@ func CreateBackUpCronJobCountSpecEnforcer(kubegresContext ctx.KubegresContext,
 }
 
 func (r *BackUpCronJobCountSpecEnforcer) EnforceSpec() error {
-
 	if r.isCronJobDeployed() {
 
 		if !r.hasSpecChanged() {
@@ -79,8 +78,7 @@ func (r *BackUpCronJobCountSpecEnforcer) getConfigMapNameForBackUp(configStates 
 	return configStates.CustomConfigName
 }
 
-func (r *BackUpCronJobCountSpecEnforcer) deployCronJob(cronJob v1beta1.CronJob) error {
-
+func (r *BackUpCronJobCountSpecEnforcer) deployCronJob(cronJob batchv1.CronJob) error {
 	r.kubegresContext.Log.Info("Deploying BackUp CronJob.", "CronJob name", cronJob.Name)
 
 	if err := r.kubegresContext.Client.Create(r.kubegresContext.Ctx, &cronJob); err != nil {
@@ -101,7 +99,6 @@ func (r *BackUpCronJobCountSpecEnforcer) isCronJobDeployed() bool {
 }
 
 func (r *BackUpCronJobCountSpecEnforcer) hasSpecChanged() (hasSpecChanged bool) {
-
 	cronJob := r.resourcesStates.BackUp.DeployedCronJob
 	cronJobSpec := &cronJob.Spec
 	cronJobTemplateSpec := cronJob.Spec.JobTemplate.Spec.Template.Spec
@@ -139,7 +136,6 @@ func (r *BackUpCronJobCountSpecEnforcer) hasSpecChanged() (hasSpecChanged bool) 
 }
 
 func (r *BackUpCronJobCountSpecEnforcer) deleteCronJob() error {
-
 	err := r.kubegresContext.Client.Delete(r.kubegresContext.Ctx, r.resourcesStates.BackUp.DeployedCronJob)
 	if err != nil {
 		r.kubegresContext.Log.ErrorEvent("PodSpecEnforcementErr", err,

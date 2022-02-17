@@ -36,11 +36,10 @@ import (
 )
 
 var _ = Describe("Setting Kubegres spec 'livenessProbe'", func() {
-
-	var test = SpecLivenessProbeTest{}
+	test := SpecLivenessProbeTest{}
 
 	BeforeEach(func() {
-		//Skip("Temporarily skipping test")
+		// Skip("Temporarily skipping test")
 
 		namespace := resourceConfigs.DefaultNamespace
 		test.resourceRetriever = util.CreateTestResourceRetriever(k8sClientTest, namespace)
@@ -57,9 +56,7 @@ var _ = Describe("Setting Kubegres spec 'livenessProbe'", func() {
 	})
 
 	Context("GIVEN new Kubegres is created with spec 'livenessProbe' set to a value and spec 'replica' set to 3 and later 'livenessProbe' is updated to a new value", func() {
-
 		It("GIVEN new Kubegres is created with spec 'livenessProbe' set to a value and spec 'replica' set to 3 THEN 1 primary and 2 replica should be created with spec 'livenessProbe' set the value", func() {
-
 			log.Print("START OF: Test 'GIVEN new Kubegres is created with spec 'livenessProbe' set to a value and spec 'replica' set to 3")
 
 			livenessProbe := test.givenLivenessProbe1()
@@ -81,7 +78,6 @@ var _ = Describe("Setting Kubegres spec 'livenessProbe'", func() {
 		})
 
 		It("GIVEN existing Kubegres is updated with spec 'livenessProbe' set to a new value THEN 1 primary and 2 replica should be re-deployed with spec 'livenessProbe' set the new value", func() {
-
 			log.Print("START OF: Test 'GIVEN existing Kubegres is updated with spec 'livenessProbe' set to a new value")
 
 			newLivenessProbe := test.givenLivenessProbe2()
@@ -100,7 +96,6 @@ var _ = Describe("Setting Kubegres spec 'livenessProbe'", func() {
 			log.Print("END OF: Test 'GIVEN existing Kubegres is updated with spec 'livenessProbe' set to a new value")
 		})
 	})
-
 })
 
 type SpecLivenessProbeTest struct {
@@ -118,9 +113,9 @@ func (r *SpecLivenessProbeTest) whenKubernetesIsUpdated() {
 func (r *SpecLivenessProbeTest) givenLivenessProbe1() *v12.Probe {
 	command := []string{"sh", "-c", "exec pg_isready -U postgres -h $POD_IP"}
 	execAction := &v12.ExecAction{Command: command}
-	handler := v12.Handler{Exec: execAction}
+	handler := v12.ProbeHandler{Exec: execAction}
 	return &v12.Probe{
-		Handler:             handler,
+		ProbeHandler:        handler,
 		InitialDelaySeconds: int32(70),
 		TimeoutSeconds:      int32(5),
 		PeriodSeconds:       int32(10),
@@ -132,9 +127,9 @@ func (r *SpecLivenessProbeTest) givenLivenessProbe1() *v12.Probe {
 func (r *SpecLivenessProbeTest) givenLivenessProbe2() *v12.Probe {
 	command := []string{"sh", "-c", "exec pg_isready -U postgres -h $POD_IP"}
 	execAction := &v12.ExecAction{Command: command}
-	handler := v12.Handler{Exec: execAction}
+	handler := v12.ProbeHandler{Exec: execAction}
 	return &v12.Probe{
-		Handler:             handler,
+		ProbeHandler:        handler,
 		InitialDelaySeconds: int32(80),
 		TimeoutSeconds:      int32(10),
 		PeriodSeconds:       int32(20),
@@ -168,7 +163,6 @@ func (r *SpecLivenessProbeTest) whenKubegresIsCreated() {
 
 func (r *SpecLivenessProbeTest) thenStatefulSetStatesShouldBe(expectedProbe *v12.Probe, nbrePrimary, nbreReplicas int) bool {
 	return Eventually(func() bool {
-
 		kubegresResources, err := r.resourceRetriever.GetKubegresResources()
 		if err != nil && !apierrors.IsNotFound(err) {
 			log.Println("ERROR while retrieving Kubegres kubegresResources")
@@ -195,7 +189,6 @@ func (r *SpecLivenessProbeTest) thenStatefulSetStatesShouldBe(expectedProbe *v12
 		}
 
 		return false
-
 	}, resourceConfigs.TestTimeout, resourceConfigs.TestRetryInterval).Should(BeTrue())
 }
 

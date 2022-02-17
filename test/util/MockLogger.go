@@ -21,15 +21,16 @@ limitations under the License.
 package util
 
 import (
-	"github.com/go-logr/logr"
 	"log"
-	log2 "reactive-tech.io/kubegres/controllers/ctx/log"
 	"strings"
+
+	"github.com/go-logr/logr"
+	log2 "reactive-tech.io/kubegres/controllers/ctx/log"
 )
 
 type MockLogger struct {
-	InfoLogger logr.InfoLogger
-	Name       string
+	Logger logr.Logger
+	Name   string
 }
 
 func (r *MockLogger) Info(msg string, keysAndValues ...interface{}) {
@@ -44,19 +45,19 @@ func (r *MockLogger) Enabled() bool {
 	return true
 }
 
-func (r *MockLogger) V(level int) logr.InfoLogger {
-	return r
+func (r *MockLogger) V(level int) logr.Logger {
+	return r.Logger.V(level)
 }
 
 func (r *MockLogger) WithValues(keysAndValues ...interface{}) logr.Logger {
-	return r
+	return r.Logger.WithValues(keysAndValues...)
 }
 
 func (r *MockLogger) WithName(name string) logr.Logger {
 	if !strings.Contains(r.Name, name) {
 		r.Name += name + " - "
 	}
-	return r
+	return r.Logger.WithName(r.Name)
 }
 
 func (r *MockLogger) constructFullErrMsg(err error, msg string, keysAndValues ...interface{}) string {

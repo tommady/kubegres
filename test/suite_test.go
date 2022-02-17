@@ -21,16 +21,17 @@ limitations under the License.
 package test
 
 import (
-	"github.com/go-logr/zapr"
-	"k8s.io/client-go/tools/record"
 	"log"
 	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/go-logr/zapr"
+	"k8s.io/client-go/tools/record"
 	"reactive-tech.io/kubegres/controllers"
 	"reactive-tech.io/kubegres/test/util"
 	"reactive-tech.io/kubegres/test/util/kindcluster"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,10 +51,12 @@ import (
 
 var kindCluster kindcluster.KindTestClusterUtil
 
-//var cfgTest *rest.Config
-var k8sClientTest client.Client
-var testEnv *envtest.Environment
-var eventRecorderTest util.MockEventRecorderTestUtil
+// var cfgTest *rest.Config
+var (
+	k8sClientTest     client.Client
+	testEnv           *envtest.Environment
+	eventRecorderTest util.MockEventRecorderTestUtil
+)
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -64,7 +67,6 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-
 	kindCluster.StartCluster()
 
 	logf.SetLogger(zapr.NewLogger(zap.NewRaw(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter))))
@@ -97,12 +99,12 @@ var _ = BeforeSuite(func(done Done) {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	mockLogger := util.MockLogger{}
+	mockLogger := util.MockLogger{Logger: zap.New()}
 	eventRecorderTest = util.MockEventRecorderTestUtil{}
 
 	err = (&controllers.KubegresReconciler{
 		Client:   k8sManager.GetClient(),
-		Logger:   &mockLogger,
+		Logger:   mockLogger.Logger,
 		Scheme:   k8sManager.GetScheme(),
 		Recorder: record.EventRecorder(&eventRecorderTest),
 	}).SetupWithManager(k8sManager)
@@ -128,7 +130,6 @@ var _ = BeforeSuite(func(done Done) {
 }, 180)
 
 var _ = AfterSuite(func() {
-
 	log.Print("START OF: Suite AfterSuite")
 
 	By("tearing down the test environment")
